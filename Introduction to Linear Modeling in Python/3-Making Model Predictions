@@ -1,0 +1,158 @@
+'''
+import LinearRegression from sklearn.linear_model and initialize the model with fit_intercept=False.
+Reshape the pre-loaded data arrays legs and heights, from "1-by-N" to "N-by-1" arrays.
+Pass the reshaped arrays legs and heights into model.fit().
+use model.predict() to predict the value fossil_height for the newly found fossil fossil_leg = 50.7.
+'''
+# import the sklearn class LinearRegression and initialize the model
+from sklearn.linear_model import LinearRegression
+model = LinearRegression(fit_intercept=False)
+
+# Prepare the measured data arrays and fit the model to them
+legs = legs.reshape(len(legs),1)
+heights = heights.reshape(len(legs),1)
+model.fit(legs, heights)
+
+# Use the fitted model to make a prediction for the found femur
+fossil_leg = 50.7
+fossil_height = model.predict(fossil_leg)
+print("Predicted fossil height = {:0.2f} cm".format(fossil_height[0,0]))
+
+
+
+'''
+Import and use LinearRegression(fit_intercept=True) to initialize a linear model.
+Pass in the pre-loaded and reshaped years and levels data into model.fit() to fit the model.
+Use model.predict() to predict a single future_level for future_year = 2100 and print() the result.
+Use model.predict() to forecast many forecast_levels and plot the result with the pre-defined plot_data_and_forecast().
+'''
+# Import LinearRegression class, build a model, fit to the data
+from sklearn.linear_model import LinearRegression
+model = LinearRegression(fit_intercept=True)
+model.fit(years, levels)
+
+# Use model to make a prediction for one year, 2100
+future_year = 2100
+future_level = model.predict(future_year)
+print("Prediction: year = {}, level = {:.02f}".format(future_year, future_level[0,0]))
+
+# Use model to predict for many years, and over-plot with measured data
+years_forecast = np.linspace(1970, 2100, 131).reshape(-1, 1)
+levels_forecast = model.predict(years_forecast)
+fig = plot_data_and_forecast(years, levels, years_forecast, levels_forecast)
+
+
+'''
+Use the pre-loaded DataFrame with columns names, distances, and velocities.
+Build and fit a model using ols().fit() with formula="velocities ~ distances" and data=df.
+Extract the parameter estimates for the intercept and slope using model_fit.params, passing these to a0 and a1 respectively.
+Repeat the process for the corresponding uncertainty values, this time using model_fit.bse.
+'''
+# Fit the model, based on the form of the formula
+model_fit = ols(formula="velocities ~ distances", data=df).fit()
+
+# Extract the model parameters and associated "errors" or uncertainties
+a0 = model_fit.params['Intercept']
+a1 = model_fit.params['distances']
+e0 = model_fit.bse['Intercept']
+e1 = model_fit.bse['distances']
+
+# Print the results
+print('For slope a1={:.02f}, the uncertainty in a1 is {:.02f}'.format(a1, e1))
+print('For intercept a0={:.02f}, the uncertainty in a0 is {:.02f}'.format(a0, e0))
+
+
+
+'''
+Use ols() to .fit() a model to the data=df_monthly with formula="Close ~ DayCount".
+Use model_fit.predict() on both df_monthly.DayCount and df_daily.DayCount to predict values for the monthly and daily Close prices, stored as a new column Model in each DataFrame.
+Use the predefined plot_model_with_data twice, on each df_monthly and df_daily and compare the RSS values shown.
+'''
+# build and fit a model to the df_monthly data
+model_fit = ols(formula='Close ~ DayCount', data=df_monthly).fit()
+
+# Use the model FIT to the MONTHLY data to make a predictions for both monthly and daily data
+df_monthly['Model'] = model_fit.predict(df_monthly.DayCount)
+df_daily['Model'] = model_fit.predict(df_daily.DayCount)
+
+# Plot the monthly and daily data and model, compare the RSS values seen on the figures
+fig_monthly = plot_model_with_data(df_monthly)
+fig_daily = plot_model_with_data(df_daily)
+
+
+'''
+Use np.abs() to compute the residuals as the differences y_data - y_model
+Find the .min() and .max() values of x at which the residuals are less than a tolerance = 100 meters.
+Use np.min() andnp.max()to print the range (the largest and smallest) ofx_good` values.
+Use the predefined plot_data_model_tolerance() to compare the data, model, and range of x_good values where the residuals < tolerance is True.
+'''
+# Compute the residuals, "data - model", and determine where [residuals < tolerance]
+residuals = np.abs(y_data - y_model)
+tolerance = 100
+x_good = x_data[residuals < tolerance]
+
+# Find the min and max of the "good" values, and plot y_data, y_model, and the tolerance range
+print('Minimum good x value = {}'.format(np.min(x_good)))
+print('Maximum good x value = {}'.format(np.max(x_good)))
+fig = plot_data_model_tolerance(x_data, y_data, y_model, tolerance)
+
+
+'''
+Compute y_model values from model_fit_and_predict(x_data, y_data).
+Compute the residuals as the difference between y_model and y_data.
+Use np.sum() and np.square() to compute RSS, and divide by len(residuals) to get MSE.
+Take the np.sqrt() of MSE to get RMSE, and print all results.
+'''
+# Build the model and compute the residuals "model - data"
+y_model = model_fit_and_predict(x_data, y_data)
+residuals = y_data - y_model
+
+# Compute the RSS, MSE, and RMSE and print the results
+RSS = np.sum(np.square(residuals))
+MSE = RSS/len(residuals)        #Mean
+RMSE = np.sqrt(MSE)
+print('RMSE = {:0.2f}, MSE = {:0.2f}, RSS = {:0.2f}'.format(RMSE, MSE, RSS))
+
+
+'''
+Compute the residuals, by subtracting the y_data from the y_model, and the deviations, by subtracting the y_data from the np.mean() of the y_data.
+Compute the variance of the residuals and the variance of the deviations, using np.mean() and np.square() to each.
+Compute the r_squared as 1 minus the ratio var_residuals / var_deviations, and print the result
+'''
+# Compute the residuals and the deviations
+residuals = y_model - y_data
+deviations = np.mean(y_data) - y_data
+
+# Compute the variance of the residuals and deviations
+var_residuals = np.sum(np.square(residuals))
+var_deviations = np.sum(np.square(deviations))
+
+# Compute r_squared as 1 - the ratio of RSS/Variance
+r_squared = 1 - (var_residuals / var_deviations)
+print('R-squared is {:0.2f}'.format(r_squared))
+
+
+
+
+'''
+Build and fit() an ols() model, for both data sets distances1 and distances2.
+Use the .bse of resulting models model_1 and model_2, and the 'times' key to extract the standard error values for the slope from each model.
+Use the .rsquared attribute to extract the R-squared value from each model.
+Print the resulting se_1, rsquared_1, se_2, rsquared_2, and visually compare.
+'''
+# Build and fit two models, for columns distances1 and distances2 in df
+model_1 = ols(formula="distances1 ~ times", data=df).fit()
+model_2 = ols(formula="distances2 ~ times", data=df).fit()
+
+# Extract R-squared for each model, and the standard error for each slope
+se_1 = model_1.bse['times']  #SE
+se_2 = model_2.bse['times']
+rsquared_1 = model_1.rsquared
+rsquared_2 = model_2.rsquared
+
+# Print the results
+print('Model 1: SE = {:0.3f}, R-squared = {:0.3f}'.format(se_1, rsquared_1))
+print('Model 2: SE = {:0.3f}, R-squared = {:0.3f}'.format(se_2, rsquared_2))
+
+
+
